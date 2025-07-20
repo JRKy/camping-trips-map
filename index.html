@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>2025 Camping Trips Map with OSRM Routes</title>
+    <link rel="icon" href="data:;base64,iVBORw0KGgo="> <!-- Prevents favicon 404 error -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -14,7 +15,7 @@
 </head>
 <body>
     <h1>2025 Camping Trips on OpenStreetMap with OSRM Routes</h1>
-    <p>Zoom/pan to explore. Routes are round-trips from home (red pin) to each destination (blue pins).</p>
+    <p>Zoom/pan to explore. Routes are round-trips from home (red pin) to each destination (blue pins). Uses open-source OSRM server for limited personal use.</p>
     <div id="map"></div>
     <script>
         // Initialize map centered on Colorado
@@ -22,7 +23,7 @@
 
         // Add OpenStreetMap tiles
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors | Routes by OSRM'
+            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors | Routes by OSRM @ routing.openstreetmap.de'
         }).addTo(map);
 
         // Home base marker (red for distinction)
@@ -49,7 +50,7 @@
             L.marker([trip.lat, trip.lon]).addTo(map)
                 .bindPopup(trip.label);
 
-            // Add round-trip route using OSRM
+            // Add round-trip route using public OSRM server (HTTPS)
             L.Routing.control({
                 waypoints: [
                     L.latLng(38.9955, -104.5893),  // Home
@@ -57,7 +58,7 @@
                     L.latLng(38.9955, -104.5893)   // Back to home
                 ],
                 router: L.Routing.osrmv1({
-                    serviceUrl: 'http://router.project-osrm.org/route/v1'
+                    serviceUrl: 'https://routing.openstreetmap.de/route/v1'
                 }),
                 lineOptions: {
                     styles: [{ color: 'blue', opacity: 0.6, weight: 4, dashArray: '5, 5' }]
