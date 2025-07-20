@@ -3,19 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2025 Camping Trips Map with OSRM Routes</title>
+    <title>2025 Camping Trips Map with Straight-Line Routes</title>
     <link rel="icon" href="data:;base64,iVBORw0KGgo="> <!-- Prevents favicon 404 error -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
     <style>
         #map { height: 600px; width: 100%; }
     </style>
 </head>
 <body>
-    <h1>2025 Camping Trips on OpenStreetMap with OSRM Routes</h1>
-    <p>Zoom/pan to explore. Routes are round-trips from home (red pin) to each destination (blue pins). Uses open-source OSRM server for limited personal use.</p>
+    <h1>2025 Camping Trips on OpenStreetMap with Straight-Line Routes</h1>
+    <p>Zoom/pan to explore. Dashed lines represent round-trip paths from home (red pin) to each destination (blue pins). No external routing server needed!</p>
     <div id="map"></div>
     <script>
         // Initialize map centered on Colorado
@@ -23,11 +21,12 @@
 
         // Add OpenStreetMap tiles
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors | Routes by OSRM @ routing.openstreetmap.de'
+            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
 
         // Home base marker (red for distinction)
-        var home = L.marker([38.9955, -104.5893], { icon: L.icon({ iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x-red.png', shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png', iconSize: [25, 41], iconAnchor: [12, 41] }) }).addTo(map)
+        var homeLatLng = L.latLng(38.9955, -104.5893);
+        L.marker(homeLatLng, { icon: L.icon({ iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x-red.png', shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png', iconSize: [25, 41], iconAnchor: [12, 41] }) }).addTo(map)
             .bindPopup('<b>Home Base</b><br>11211 Palmer Peak Pl, 80831');
 
         // Trip data with coordinates and details
@@ -44,29 +43,20 @@
             { lat: 38.7475, lon: -104.8526, label: 'Trip 10: Cheyenne Mountain State Park<br>Dates: Oct 25 – Nov 8<br>Nights: 15' }
         ];
 
-        // Add markers and routes for each trip
+        // Add markers and straight-line routes for each trip
         trips.forEach(function(trip) {
+            var destLatLng = L.latLng(trip.lat, trip.lon);
+
             // Add blue marker for destination
-            L.marker([trip.lat, trip.lon]).addTo(map)
+            L.marker(destLatLng).addTo(map)
                 .bindPopup(trip.label);
 
-            // Add round-trip route using public OSRM server (HTTPS)
-            L.Routing.control({
-                waypoints: [
-                    L.latLng(38.9955, -104.5893),  // Home
-                    L.latLng(trip.lat, trip.lon),   // Destination
-                    L.latLng(38.9955, -104.5893)   // Back to home
-                ],
-                router: L.Routing.osrmv1({
-                    serviceUrl: 'https://routing.openstreetmap.de/route/v1'
-                }),
-                lineOptions: {
-                    styles: [{ color: 'blue', opacity: 0.6, weight: 4, dashArray: '5, 5' }]
-                },
-                createMarker: function() { return null; },  // No extra markers on route
-                addWaypoints: false,
-                routeWhileDragging: false,
-                show: false  // Hide instructions panel
+            // Draw dashed straight line (round-trip overlaps)
+            L.polyline([homeLatLng, destLatLng], {
+                color: 'blue',
+                weight: 4,
+                opacity: 0.6,
+                dashArray: '5, 5'
             }).addTo(map);
         });
     </script>
