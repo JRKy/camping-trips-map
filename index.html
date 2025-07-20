@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2025 Camping Trips Map with OSRM Routes</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+    <style>
+        #map { height: 600px; width: 100%; }
+    </style>
+</head>
+<body>
+    <h1>2025 Camping Trips on OpenStreetMap with OSRM Routes</h1>
+    <p>Zoom/pan to explore. Routes are round-trips from home (red pin) to each destination (blue pins).</p>
+    <div id="map"></div>
+    <script>
+        // Initialize map centered on Colorado
+        var map = L.map('map').setView([38.8339, -105.8214], 7);
+
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors | Routes by OSRM'
+        }).addTo(map);
+
+        // Home base marker (red for distinction)
+        var home = L.marker([38.9955, -104.5893], { icon: L.icon({ iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x-red.png', shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png', iconSize: [25, 41], iconAnchor: [12, 41] }) }).addTo(map)
+            .bindPopup('<b>Home Base</b><br>11211 Palmer Peak Pl, 80831');
+
+        // Trip data with coordinates and details
+        var trips = [
+            { lat: 38.7475, lon: -104.8526, label: 'Trip 1: Cheyenne Mountain State Park<br>Dates: Apr 25 – May 2<br>Nights: 7' },
+            { lat: 38.6435, lon: -104.8682, label: 'Trip 2: Mountaindale Cabins & RV Resort<br>Dates: May 2 – May 4<br>Nights: 2' },
+            { lat: 38.1332, lon: -105.4681, label: 'Trip 3: Grape Creek RV Park<br>Dates: May 16 – May 19<br>Nights: 3' },
+            { lat: 38.9636, lon: -105.4495, label: 'Trip 4: M Lazy C Ranch<br>Dates: Jun 6 – Jun 8<br>Nights: 2' },
+            { lat: 37.4745, lon: -108.5020, label: 'Trip 5: West View RV Resort<br>Dates: Jun 19 – Jun 23<br>Nights: 4' },
+            { lat: 37.6730, lon: -106.6435, label: 'Trip 6: Aspen Ridge RV Park<br>Dates: Jul 2 – Jul 8<br>Nights: 6' },
+            { lat: 39.6504, lon: -104.8437, label: 'Trip 7: Cherry Creek State Park<br>Dates: Jul 12 – Jul 19<br>Nights: 7' },
+            { lat: 38.7817, lon: -105.1225, label: 'Trip 8: Cripple Creek KOA<br>Dates: Jul 23 – Jul 28<br>Nights: 5' },
+            { lat: 38.9966, lon: -104.8597, label: 'Trip 9: USAF Academy FamCamp<br>Dates: Sep 19 – Sep 28<br>Nights: 9' },
+            { lat: 38.7475, lon: -104.8526, label: 'Trip 10: Cheyenne Mountain State Park<br>Dates: Oct 25 – Nov 8<br>Nights: 15' }
+        ];
+
+        // Add markers and routes for each trip
+        trips.forEach(function(trip) {
+            // Add blue marker for destination
+            L.marker([trip.lat, trip.lon]).addTo(map)
+                .bindPopup(trip.label);
+
+            // Add round-trip route using OSRM
+            L.Routing.control({
+                waypoints: [
+                    L.latLng(38.9955, -104.5893),  // Home
+                    L.latLng(trip.lat, trip.lon),   // Destination
+                    L.latLng(38.9955, -104.5893)   // Back to home
+                ],
+                router: L.Routing.osrmv1({
+                    serviceUrl: 'http://router.project-osrm.org/route/v1'
+                }),
+                lineOptions: {
+                    styles: [{ color: 'blue', opacity: 0.6, weight: 4, dashArray: '5, 5' }]
+                },
+                createMarker: function() { return null; },  // No extra markers on route
+                addWaypoints: false,
+                routeWhileDragging: false,
+                show: false  // Hide instructions panel
+            }).addTo(map);
+        });
+    </script>
+</body>
+</html>
