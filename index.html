@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2025 Camping Trips Map with Straight-Line Routes</title>
+    <title>2025 Camping Trips Map with Highlighted Destinations</title>
     <link rel="icon" href="data:;base64,iVBORw0KGgo="> <!-- Prevents favicon 404 error -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -12,8 +12,8 @@
     </style>
 </head>
 <body>
-    <h1>2025 Camping Trips on OpenStreetMap with Straight-Line Routes</h1>
-    <p>Zoom/pan to explore. Dashed lines represent round-trip paths from home (red pin) to each destination (blue pins). No external routing server needed!</p>
+    <h1>2025 Camping Trips on OpenStreetMap with Highlighted Destinations</h1>
+    <p>Zoom/pan to explore. Dashed lines represent round-trip paths from home (red pin) to each destination (blue pins with yellow highlights). No external routing server needed!</p>
     <div id="map"></div>
     <script>
         // Initialize map centered on Colorado
@@ -43,13 +43,22 @@
             { lat: 38.7475, lon: -104.8526, label: 'Trip 10: Cheyenne Mountain State Park<br>Dates: Oct 25 – Nov 8<br>Nights: 15' }
         ];
 
-        // Add markers and straight-line routes for each trip
+        // Add markers, highlights, and straight-line routes for each trip
         trips.forEach(function(trip) {
             var destLatLng = L.latLng(trip.lat, trip.lon);
 
             // Add blue marker for destination
-            L.marker(destLatLng).addTo(map)
+            var marker = L.marker(destLatLng).addTo(map)
                 .bindPopup(trip.label);
+
+            // Add yellow highlight circle around the destination
+            L.circle(destLatLng, {
+                color: 'yellow',
+                fillColor: 'transparent',
+                fillOpacity: 0,
+                weight: 3,
+                radius: 5000 // 5 km radius for visibility
+            }).addTo(map);
 
             // Draw dashed straight line (round-trip overlaps)
             L.polyline([homeLatLng, destLatLng], {
