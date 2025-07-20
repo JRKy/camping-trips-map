@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2025 Camping Trips Map with Highlighted Destinations</title>
+    <title>All-Time Camping Trips Map (2001–2025)</title>
     <link rel="icon" href="data:;base64,iVBORw0KGgo="> <!-- Prevents favicon 404 error -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -12,61 +12,137 @@
     </style>
 </head>
 <body>
-    <h1>2025 Camping Trips on OpenStreetMap with Highlighted Destinations</h1>
-    <p>Zoom/pan to explore. Dashed lines represent round-trip paths from home (red pin) to each destination (blue pins with yellow highlights). No external routing server needed!</p>
+    <h1>All-Time Camping Trips on OpenStreetMap (2001–2025)</h1>
+    <p>Zoom/pan to explore. Dashed lines (color-coded by year) represent round-trip paths from home (red pins) to destinations (blue pins with yellow highlights). Multi-stop trips are chained sequentially.</p>
     <div id="map"></div>
     <script>
-        // Initialize map centered on Colorado
-        var map = L.map('map').setView([38.8339, -105.8214], 7);
+        // Initialize map centered on the US to show cross-country trips
+        var map = L.map('map').setView([40, -100], 5);
 
         // Add OpenStreetMap tiles
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
 
-        // Home base marker (red for distinction, using CORS-friendly GitHub raw URL)
-        var homeLatLng = L.latLng(38.9955, -104.5893);
-        L.marker(homeLatLng, { icon: L.icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png', shadowUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-shadow.png', iconSize: [25, 41], iconAnchor: [12, 41] }) }).addTo(map)
-            .bindPopup('<b>Home Base</b><br>11211 Palmer Peak Pl, 80831');
+        // Home bases (red markers)
+        var home2001LatLng = L.latLng(38.9162, -104.6895);
+        L.marker(home2001LatLng, { icon: L.icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png', shadowUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-shadow.png', iconSize: [25, 41], iconAnchor: [12, 41] }) }).addTo(map)
+            .bindPopup('<b>2001 Home Base</b><br>7303 Manistique Dr, Colorado Springs, CO 80923');
 
-        // Trip data with coordinates and details
-        var trips = [
-            { lat: 38.7475, lon: -104.8526, label: 'Trip 1: Cheyenne Mountain State Park<br>Dates: Apr 25 – May 2<br>Nights: 7' },
-            { lat: 38.6435, lon: -104.8682, label: 'Trip 2: Mountaindale Cabins & RV Resort<br>Dates: May 2 – May 4<br>Nights: 2' },
-            { lat: 38.1332, lon: -105.4681, label: 'Trip 3: Grape Creek RV Park<br>Dates: May 16 – May 19<br>Nights: 3' },
-            { lat: 38.9636, lon: -105.4495, label: 'Trip 4: M Lazy C Ranch<br>Dates: Jun 6 – Jun 8<br>Nights: 2' },
-            { lat: 37.4745, lon: -108.5020, label: 'Trip 5: West View RV Resort<br>Dates: Jun 19 – Jun 23<br>Nights: 4' },
-            { lat: 37.6730, lon: -106.6435, label: 'Trip 6: Aspen Ridge RV Park<br>Dates: Jul 2 – Jul 8<br>Nights: 6' },
-            { lat: 39.6504, lon: -104.8437, label: 'Trip 7: Cherry Creek State Park<br>Dates: Jul 12 – Jul 19<br>Nights: 7' },
-            { lat: 38.7817, lon: -105.1225, label: 'Trip 8: Cripple Creek KOA<br>Dates: Jul 23 – Jul 28<br>Nights: 5' },
-            { lat: 38.9966, lon: -104.8597, label: 'Trip 9: USAF Academy FamCamp<br>Dates: Sep 19 – Sep 28<br>Nights: 9' },
-            { lat: 38.7475, lon: -104.8526, label: 'Trip 10: Cheyenne Mountain State Park<br>Dates: Oct 25 – Nov 8<br>Nights: 15' }
-        ];
+        var homeOtherLatLng = L.latLng(38.9955, -104.5893);
+        L.marker(homeOtherLatLng, { icon: L.icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png', shadowUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-shadow.png', iconSize: [25, 41], iconAnchor: [12, 41] }) }).addTo(map)
+            .bindPopup('<b>2022–2025 Home Base</b><br>11211 Palmer Peak Pl, Peyton, CO 80831');
 
-        // Add markers, highlights, and straight-line routes for each trip
-        trips.forEach(function(trip) {
-            var destLatLng = L.latLng(trip.lat, trip.lon);
-
-            // Add blue marker for destination
-            var marker = L.marker(destLatLng).addTo(map)
-                .bindPopup(trip.label);
-
-            // Add yellow highlight circle around the destination
-            L.circle(destLatLng, {
-                color: 'yellow',
-                fillColor: 'transparent',
-                fillOpacity: 0,
-                weight: 3,
-                radius: 5000 // 5 km radius for visibility
-            }).addTo(map);
-
-            // Draw dashed straight line (round-trip overlaps)
-            L.polyline([homeLatLng, destLatLng], {
+        // Year data with colors, homes, and trips (points as arrays, labels for popups)
+        var years = {
+            '2001': {
+                home: home2001LatLng,
+                color: 'red',
+                trips: [
+                    { label: 'Apr 30 – May 2, 2001 (2 nights) Mountaindale Cabins and RV Resort', points: [[38.6435, -104.8682]] },
+                    { label: 'May 7 – May 9, 2001 (2 nights) Golden Bell Camp & Conference Center', points: [[38.9532, -105.1664]] },
+                    { label: 'May 21 – May 23, 2001 (2 nights) Lathrop State Park', points: [[37.6126, -104.8376]] },
+                    { label: 'May 26 – May 31, 2001 (5 nights) Dispersed Camping – Rule Ridge Trailhead', points: [[39.0091, -105.1765]] },
+                    { label: 'Jun 4 – Jun 6, 2001 (2 nights) Ruby Mountain Campground', points: [[38.7636, -106.0731]] },
+                    { label: 'Jun 11 – Jun 14, 2001 (3 nights) Elk Horn RV Resort and Cabins', points: [[38.5489, -106.9360]] },
+                    { labels: ['Jul 1 – 24/7 Travel Store', 'Jul 2 – Cracker Barrel Old Country Store', 'Jul 3 – Walmart Supercenter', 'Jul 4 – Jul 8 – Skyway Camping Resort', 'Jul 8 – Jul 15 – Private Property Stay', 'Jul 15 – Mt. Gilead KOA Holiday', 'Jul 16 – Kamper Kompanion RV Park', 'Jul 17 – Flatland RV Park'], points: [[38.9221, -97.1770], [39.4194, -87.3892], [41.1504, -80.1124], [41.7831, -74.4819], [41.6203, -76.0820], [40.5465, -82.8101], [39.1975, -89.6543], [38.9221, -97.1770]] },
+                    { label: 'Aug 12 – Aug 15, 2001 (3 nights) MountainViews at Rivers Edge RV Resort', points: [[37.8293, -106.9304]] },
+                    { label: 'Aug 19 – Aug 22, 2001 (3 nights) Dry Camping – Taylor Park Reservoir', points: [[38.8205, -106.5574]] },
+                    { labels: ['Sep 2 – Indian Campground & RV Park', 'Sep 3 – Sep 7 – Yellowstone Grizzly RV Park', 'Sep 7 – Indian Campground & RV Park (return)'], points: [[44.3868, -106.6856], [44.6540, -111.1031], [44.3868, -106.6856]] },
+                    { label: 'Oct 1 – Oct 3, 2001 (2 nights) Mountaindale Cabins and RV Resort', points: [[38.6435, -104.8682]] }
+                ]
+            },
+            '2022': {
+                home: homeOtherLatLng,
+                color: 'orange',
+                trips: [
+                    { label: 'Apr 29 – May 2, 2022 (3 nights) Mountaindale Cabins and RV Resort', points: [[38.6435, -104.8682]] },
+                    { label: 'Jul 2 – Jul 5, 2022 (3 nights) The Views RV Park and Campground', points: [[37.4885, -108.5437]] },
+                    { label: 'Aug 19 – Aug 22, 2022 (3 nights) Silverton Lakes South RV Park and Cabins', points: [[37.8084, -107.6610]] },
+                    { label: 'Sep 9 – Sep 11, 2022 (2 nights) Yogi Bear’s Jellystone Park Camp-Resort', points: [[39.2305, -104.8943]] }
+                ]
+            },
+            '2023': {
+                home: homeOtherLatLng,
+                color: 'green',
+                trips: [
+                    { label: 'Apr 28 – Apr 30, 2023 (2 nights) Mountaindale Cabins and RV Resort', points: [[38.6435, -104.8682]] },
+                    { label: 'May 5 – May 7, 2023 (2 nights) Chatfield State Park', points: [[39.5375, -105.0560]] },
+                    { label: 'May 26 – May 29, 2023 (3 nights) Road Runner RV Resort', points: [[36.7094, -105.3942]] },
+                    { label: 'Jun 16 – Jun 19, 2023 (3 nights) Ouray Riverside Resort – Cabins, Inn & RV Park', points: [[38.0409, -107.6663]] },
+                    { label: 'Jul 7 – Jul 10, 2023 (3 nights) Aspen Ridge RV Park', points: [[37.6730, -106.6435]] },
+                    { label: 'Jul 21 – Jul 23, 2023 (2 nights) Yogi Bear’s Jellystone Park Camp-Resort', points: [[40.3623, -105.4620]] },
+                    { label: 'Aug 11 – Aug 15, 2023 (4 nights) Dry Camping – Taylor Park Reservoir', points: [[38.8205, -106.5574]] },
+                    { label: 'Sep 29 – Oct 1, 2023 (2 nights) Ruby Mountain Campground', points: [[38.7636, -106.0731]] }
+                ]
+            },
+            '2024': {
+                home: homeOtherLatLng,
+                color: 'purple',
+                trips: [
+                    { label: 'Apr 26 – Apr 28, 2024 (2 nights) Mountaindale Cabins and RV Resort', points: [[38.6435, -104.8682]] },
+                    { label: 'May 10 – May 12, 2024 (2 nights) KOA Holiday – Colorado Springs/Falcon', points: [[38.9115, -104.4093]] },
+                    { label: 'May 25 – May 29, 2024 (4 nights) Glenwood Canyon Resort', points: [[39.5571, -107.2933]] },
+                    { label: 'Jun 27 – Jun 30, 2024 (3 nights) MountainViews at Rivers Edge RV Resort', points: [[37.8293, -106.9304]] },
+                    { label: 'Jul 5 – Jul 7, 2024 (2 nights) Cherry Creek State Park', points: [[39.6475, -104.8359]] },
+                    { label: 'Jul 19 – Jul 23, 2024 (4 nights) Riverbend RV Park and Cabins', points: [[38.4371, -107.8369]] },
+                    { label: 'Aug 1 – Aug 5, 2024 (4 nights) Dry Camping – Taylor Park Reservoir', points: [[38.8205, -106.5574]] },
+                    { label: 'Sep 6 – Sep 9, 2024 (3 nights) Aspen Ridge RV Park', points: [[37.6730, -106.6435]] },
+                    { label: 'Sep 13 – Sep 15, 2024 (2 nights) M Lazy C Ranch', points: [[38.9860, -105.4404]] },
+                    { label: 'Nov 14 – Nov 18, 2024 (4 nights) Cheyenne Mountain State Park', points: [[38.7479, -104.8474]] }
+                ]
+            },
+            '2025': {
+                home: homeOtherLatLng,
                 color: 'blue',
-                weight: 4,
-                opacity: 0.6,
-                dashArray: '5, 5'
-            }).addTo(map);
+                trips: [
+                    { label: 'Apr 25 – May 2, 2025 (7 nights) Cheyenne Mountain State Park', points: [[38.7479, -104.8474]] },
+                    { label: 'May 2 – May 4, 2025 (2 nights) Mountaindale Cabins and RV Resort', points: [[38.6435, -104.8682]] },
+                    { label: 'May 16 – May 19, 2025 (3 nights) Grape Creek RV Park', points: [[38.1332, -105.4681]] },
+                    { label: 'Jun 6 – Jun 8, 2025 (2 nights) M Lazy C Ranch', points: [[38.9860, -105.4404]] },
+                    { label: 'Jun 19 – Jun 23, 2025 (4 nights) West View RV Resort', points: [[37.4745, -108.5020]] },
+                    { label: 'Jul 2 – Jul 8, 2025 (6 nights) Aspen Ridge RV Park', points: [[37.6730, -106.6435]] },
+                    { label: 'Jul 12 – Jul 19, 2025 (7 nights) Cherry Creek State Park', points: [[39.6475, -104.8359]] },
+                    { label: 'Jul 23 – Jul 28, 2025 (5 nights) Cripple Creek KOA Holiday', points: [[38.7817, -105.1225]] },
+                    { label: 'Sep 19 – Sep 28, 2025 (9 nights) Peregrine Pines FamCamp – USAFA', points: [[38.9966, -104.8597]] },
+                    { label: 'Oct 25 – Nov 8, 2025 (14 nights) Cheyenne Mountain State Park', points: [[38.7479, -104.8474]] }
+                ]
+            }
+        };
+
+        // Add routes, markers, and highlights for each year
+        Object.keys(years).forEach(function(yearKey) {
+            var year = years[yearKey];
+            var homeLatLng = year.home;
+            var color = year.color;
+
+            year.trips.forEach(function(trip) {
+                var tripPoints = trip.points.map(function(p) { return L.latLng(p[0], p[1]); });
+                var labels = trip.labels || [trip.label];  // Use array for multi, single for others
+
+                // Draw dashed straight-line route (home -> points -> home)
+                var linePoints = [homeLatLng].concat(tripPoints).concat([homeLatLng]);
+                L.polyline(linePoints, {
+                    color: color,
+                    weight: 4,
+                    opacity: 0.6,
+                    dashArray: '5, 5'
+                }).addTo(map);
+
+                // Add markers and yellow highlights for each destination/stop
+                tripPoints.forEach(function(latlng, index) {
+                    L.marker(latlng).addTo(map)
+                        .bindPopup(labels[index] || trip.label);  // Fallback to main label if no sub-label
+
+                    L.circle(latlng, {
+                        color: 'yellow',
+                        fillColor: 'transparent',
+                        fillOpacity: 0,
+                        weight: 3,
+                        radius: 5000  // 5 km for visibility
+                    }).addTo(map);
+                });
+            });
         });
     </script>
 </body>
